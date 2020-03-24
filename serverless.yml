@@ -1,0 +1,47 @@
+#Configure serverless
+service: post-pick
+app: post-pick-${opt:stage, self:custom.default_stage}
+
+custom:
+  default_stage: dev
+  apigwBinary:
+    types:
+      - '*/*'
+
+package:
+  # include: 
+  #   - services/vehicle/vehicle.main
+  exclude:
+    - node_modules/**
+
+plugins:
+  - serverless-offline
+  - serverless-plugin-include-dependencies
+  - serverless-apigw-binary
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  stage: ${opt:stage, self:custom.default_stage}
+  region: us-east-1
+  memorySize: 1024
+  iamRoleStatements:
+  environment:
+      API_VERSION: /api/v1
+      MONGO_DB: 'mongodb+srv://allensmilko:*123456@pruebas-2k5km.mongodb.net/test?retryWrites=true&w=majority'
+      RECONECTTIRES: 5000
+      RECONNECTINTERVAL: 0
+      SOCKETTIMEOUT: 100000
+      CONNECTTIMEOUT: 100000
+      NEWURLPARSER: true
+      AVATAR_DEFAULT: avatar.jpg
+functions:
+  app:
+    handler: main.handler
+    events:
+      - http: ANY /
+        cors:
+          origin: '*'
+      - http: ANY {proxy+}
+        cors:
+          origin: '*'
